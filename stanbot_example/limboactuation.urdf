@@ -1,0 +1,156 @@
+<?xml version='1.0' encoding='utf-8'?>
+<robot name="limboactuation">
+  <link name="HA">
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <mass value="4" />
+        <inertia ixx="0.4" iyy="0.4" izz="0.4" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual>
+        <geometry>
+          <mesh filename="../../../model/limbot/HA.obj"/>
+        </geometry>
+      </visual>
+      <!-- <visual>
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+        <geometry>
+            <sphere radius="0.05"/>
+        </geometry>
+      </visual> -->
+  </link>
+  <link name="VA">
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <mass value="4" />
+        <inertia ixx="0.4" iyy="0.4" izz="0.4" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual>
+        <geometry>
+          <mesh filename="../../../model/limbot/VA.obj"/>
+        </geometry>
+      </visual>
+      <!-- <visual>
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+        <geometry>
+            <sphere radius="0.05"/>
+        </geometry>
+      </visual> -->
+  </link>
+  <link name="stick">
+      <inertial>
+        <origin xyz="0 0 0.4" rpy="0 0 0" />
+        <mass value="4" />
+        <inertia ixx="0.4" iyy="0.4" izz="0.4" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual>
+        <geometry>
+          <mesh filename="../../../model/limbot/Limbo_stick_brown.obj"/>
+        </geometry>
+      </visual>
+      <!-- <visual>
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+        <geometry>
+            <sphere radius="0.05"/>
+        </geometry>
+      </visual> -->
+   </link>
+
+  <link name="HA-2">
+      <inertial>
+        <origin xyz="0 1.0 0" rpy="0 0 0" />
+        <mass value="4" />
+        <inertia ixx="0.4" iyy="0.4" izz="0.4" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual>
+        <geometry>
+          <mesh filename="../../../model/limbot/HA.obj"/>
+        </geometry>
+      </visual>
+      <!-- <visual>
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+        <geometry>
+            <sphere radius="0.05"/>
+        </geometry>
+      </visual> -->
+   </link>
+  <link name="VA-2">
+      <inertial>
+        <origin xyz="0 1.0 0.6" rpy="0 0 0" />
+        <mass value="4" />
+        <inertia ixx="0.4" iyy="0.4" izz="0.4" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual>
+        <geometry>
+          <mesh filename="../../../model/limbot/VA.obj"/>
+        </geometry>
+      </visual>
+      <!-- <visual>
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+        <geometry>
+            <sphere radius="0.05"/>
+        </geometry>
+      </visual> -->
+    </link>
+
+   
+
+
+    
+
+
+    <!-- Joints -->
+    <!-- Vert actuation -->
+    <joint name="j1" type="prismatic">
+      <safety_controller k_position="100.0" k_velocity="40.0" soft_lower_limit="0.6" soft_upper_limit="0.9"/>
+      <origin rpy="0 0 0" xyz="0 0 0.6"/>
+      <parent link="HA"/>
+      <child link="VA"/>
+      <axis xyz="0 0 1"/>
+      <!-- <calibration falling="0" /> -->
+      <calibration rising="0" />  
+      <!-- not sure about what to set rising to -->
+
+      <limit effort="87" lower="0.6" upper="0.9" velocity="2.1750"/>
+    </joint>
+    <joint name="j2" type="fixed">
+      <safety_controller k_position="100.0" k_velocity="40.0" soft_lower_limit="0.6" soft_upper_limit="0.9"/>
+      <origin rpy="0 0 0" xyz="0 0 1"/>
+      <parent link="VA"/>
+      <child link="stick"/>
+      <axis xyz="0 0 1"/>
+      <!-- <calibration falling="0" /> -->
+      <calibration rising="0" />  
+      <!-- not sure about what to set rising to -->
+
+      <limit effort="87" lower="0.6" upper="0.9" velocity="2.1750"/>
+    </joint>
+
+     <joint name="j3" type="fixed">
+      <safety_controller k_position="100.0" k_velocity="40.0" soft_lower_limit="0.6" soft_upper_limit="0.9"/>
+      <origin rpy="0 0 0" xyz="1 0 1"/>
+      <parent link="stick"/>
+      <child link="VA-2"/>
+      <axis xyz="0 0 1"/>
+      <!-- <calibration falling="0" /> -->
+      <calibration rising="0" />  
+      <!-- not sure about what to set rising to -->
+
+      <limit effort="87" lower="0.6" upper="0.9" velocity="2.1750"/>
+    </joint>    
+
+    <joint name="j4" type="prismatic">
+      <safety_controller k_position="100.0" k_velocity="40.0" soft_lower_limit="0.6" soft_upper_limit="0.9"/>
+      <origin rpy="0 0 0" xyz="1 0 0.6"/>
+      <parent link="HA-2"/>
+      <child link="VA-2"/>
+      <axis xyz="0 0 1"/>
+      <!-- <calibration falling="0" /> -->
+      <calibration rising="0" />  
+      <!-- not sure about what to set rising to -->
+
+      <limit effort="87" lower="0.6" upper="0.9" velocity="2.1750"/>
+    </joint>
+ 
+ 
+
+</robot>
