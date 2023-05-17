@@ -20,7 +20,7 @@
   </link>
   <link name="VA">
       <inertial>
-        <origin xyz="0 0 0" rpy="0 0 0" />
+        <origin xyz="0 0 0.6" rpy="0 0 0" />
         <mass value="4" />
         <inertia ixx="0.4" iyy="0.4" izz="0.4" ixy="0" ixz="0" iyz="0" />
       </inertial>
@@ -38,7 +38,7 @@
   </link>
   <link name="stick">
       <inertial>
-        <origin xyz="0 0 0.4" rpy="0 0 0" />
+        <origin xyz="0 0 1.5" rpy="0 0 0" />
         <mass value="4" />
         <inertia ixx="0.4" iyy="0.4" izz="0.4" ixy="0" ixz="0" iyz="0" />
       </inertial>
@@ -99,7 +99,7 @@
 
 
     <!-- Joints -->
-    <!-- Vert actuation -->
+    <!-- vertical actuation for VA- HA -->
     <joint name="j1" type="prismatic">
       <safety_controller k_position="100.0" k_velocity="40.0" soft_lower_limit="0.6" soft_upper_limit="0.9"/>
       <origin rpy="0 0 0" xyz="0 0 0.6"/>
@@ -111,6 +111,8 @@
       <!-- not sure about what to set rising to -->
 
       <limit effort="87" lower="0.6" upper="0.9" velocity="2.1750"/>
+
+     <!-- fixed joint between VA and stick  -->
     </joint>
     <joint name="j2" type="fixed">
       <safety_controller k_position="100.0" k_velocity="40.0" soft_lower_limit="0.6" soft_upper_limit="0.9"/>
@@ -125,6 +127,8 @@
       <limit effort="87" lower="0.6" upper="0.9" velocity="2.1750"/>
     </joint>
 
+     <!-- fixed joint between VA-2 and stick  -->
+
      <joint name="j3" type="fixed">
       <safety_controller k_position="100.0" k_velocity="40.0" soft_lower_limit="0.6" soft_upper_limit="0.9"/>
       <origin rpy="0 0 0" xyz="1 0 1"/>
@@ -136,8 +140,10 @@
       <!-- not sure about what to set rising to -->
 
       <limit effort="87" lower="0.6" upper="0.9" velocity="2.1750"/>
-    </joint>    
+    </joint>  
 
+
+     <!-- prismatic joint between VA-2 and HA-2  -->
     <joint name="j4" type="prismatic">
       <safety_controller k_position="100.0" k_velocity="40.0" soft_lower_limit="0.6" soft_upper_limit="0.9"/>
       <origin rpy="0 0 0" xyz="1 0 0.6"/>
