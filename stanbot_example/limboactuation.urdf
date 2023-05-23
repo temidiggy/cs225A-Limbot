@@ -6,7 +6,15 @@
         <mass value="4" />
         <inertia ixx="0.4" iyy="0.4" izz="0.4" ixy="0" ixz="0" iyz="0" />
       </inertial>
+      
       <visual>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <geometry>
+          <mesh filename="../../../model/limbot/HA.obj"/>
+        </geometry>
+      </visual>
+      <visual>
+      <origin xyz="0 0.6 0" rpy="0 0 0" />
         <geometry>
           <mesh filename="../../../model/limbot/HA.obj"/>
         </geometry>
@@ -29,74 +37,35 @@
           <mesh filename="../../../model/limbot/VA.obj"/>
         </geometry>
       </visual>
-      <!-- <visual>
-        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
-        <geometry>
-            <sphere radius="0.05"/>
-        </geometry>
-      </visual> -->
-  </link>
-  <link name="stick">
-      <inertial>
-        <origin xyz="0 0 1.5" rpy="0 0 0" />
-        <mass value="4" />
-        <inertia ixx="0.4" iyy="0.4" izz="0.4" ixy="0" ixz="0" iyz="0" />
-      </inertial>
       <visual>
+        <origin xyz="0 0 0.6" rpy="0 0 0" />        
         <geometry>
           <mesh filename="../../../model/limbot/Limbo_stick_brown.obj"/>
         </geometry>
       </visual>
-      <!-- <visual>
-        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
-        <geometry>
-            <sphere radius="0.05"/>
-        </geometry>
-      </visual> -->
-   </link>
-
-  <link name="HA-2">
-      <inertial>
-        <origin xyz="0 1.0 0" rpy="0 0 0" />
-        <mass value="4" />
-        <inertia ixx="0.4" iyy="0.4" izz="0.4" ixy="0" ixz="0" iyz="0" />
-      </inertial>
       <visual>
-        <geometry>
-          <mesh filename="../../../model/limbot/HA.obj"/>
-        </geometry>
-      </visual>
-      <!-- <visual>
-        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
-        <geometry>
-            <sphere radius="0.05"/>
-        </geometry>
-      </visual> -->
-   </link>
-  <link name="VA-2">
-      <inertial>
-        <origin xyz="0 1.0 0.6" rpy="0 0 0" />
-        <mass value="4" />
-        <inertia ixx="0.4" iyy="0.4" izz="0.4" ixy="0" ixz="0" iyz="0" />
-      </inertial>
-      <visual>
+       <origin xyz="0 0.6 0" rpy="0 0 0" />
         <geometry>
           <mesh filename="../../../model/limbot/VA.obj"/>
         </geometry>
       </visual>
-      <!-- <visual>
-        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
-        <geometry>
-            <sphere radius="0.05"/>
-        </geometry>
-      </visual> -->
-    </link>
+      <visual>
+	        <origin xyz="0 0 0.6" rpy="-1.5715 0 0" />
+	        <geometry>
+	             <cylinder radius="0.025" length="0.6"/>
+          </geometry>
+      </visual> 
 
-   
-
-
+      <collision>
+	        <origin xyz="0 0 0.6" rpy="-1.5715 0 0" />
+	        <geometry>
+	             <cylinder radius="0.025" length="0.6"/>
+	        </geometry>
+	    </collision>
+  </link>
+  
+  
     
-
 
     <!-- Joints -->
     <!-- vertical actuation for VA- HA -->
@@ -114,48 +83,11 @@
 
      <!-- fixed joint between VA and stick  -->
     </joint>
-    <joint name="j2" type="fixed">
-      <safety_controller k_position="100.0" k_velocity="40.0" soft_lower_limit="0.6" soft_upper_limit="0.9"/>
-      <origin rpy="0 0 0" xyz="0 0 1"/>
-      <parent link="VA"/>
-      <child link="stick"/>
-      <axis xyz="0 0 1"/>
-      <!-- <calibration falling="0" /> -->
-      <calibration rising="0" />  
-      <!-- not sure about what to set rising to -->
-
-      <limit effort="87" lower="0.6" upper="0.9" velocity="2.1750"/>
-    </joint>
+   
 
      <!-- fixed joint between VA-2 and stick  -->
-
-     <joint name="j3" type="fixed">
-      <safety_controller k_position="100.0" k_velocity="40.0" soft_lower_limit="0.6" soft_upper_limit="0.9"/>
-      <origin rpy="0 0 0" xyz="1 0 1"/>
-      <parent link="stick"/>
-      <child link="VA-2"/>
-      <axis xyz="0 0 1"/>
-      <!-- <calibration falling="0" /> -->
-      <calibration rising="0" />  
-      <!-- not sure about what to set rising to -->
-
-      <limit effort="87" lower="0.6" upper="0.9" velocity="2.1750"/>
-    </joint>  
-
-
-     <!-- prismatic joint between VA-2 and HA-2  -->
-    <joint name="j4" type="prismatic">
-      <safety_controller k_position="100.0" k_velocity="40.0" soft_lower_limit="0.6" soft_upper_limit="0.9"/>
-      <origin rpy="0 0 0" xyz="1 0 0.6"/>
-      <parent link="HA-2"/>
-      <child link="VA-2"/>
-      <axis xyz="0 0 1"/>
-      <!-- <calibration falling="0" /> -->
-      <calibration rising="0" />  
-      <!-- not sure about what to set rising to -->
-
-      <limit effort="87" lower="0.6" upper="0.9" velocity="2.1750"/>
-    </joint>
+   
+  
  
  
 

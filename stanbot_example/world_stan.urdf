@@ -7,18 +7,12 @@
 		<origin xyz="0 0 0" rpy="0 0 0" />
 	</robot>
 
-	<!-- <static_object name="Ground_With_Texture">
-		<origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
-	    <visual>
-	        <origin xyz="0.0 0.0 -0.0001" rpy="0 0 0" />
-	        <geometry>
-	            <box size="2 2 0.0002" />
-	        </geometry>
-	        <material name="material">
-		        <color rgba="0.5 0.5 0.5 1.0" />
-	        </material>
-	    </visual>
-	</static_object> -->
+	<robot name="limboactuation">
+		<model dir="./resources" path="limboactuation.urdf" name="limboactuation" />
+		<origin xyz="0.7 0.7 0" rpy="0 0 0" />
+	</robot>
+
+
 
 	<light name="light1" type="directional">
 		<position xyz="2.0 2.0 2.0" />
@@ -31,9 +25,280 @@
 	</light>
 
 	<camera name="camera_fixed">
-		<position xyz="0 -3 1.0" />
+		<position xyz="0 -2 1.0" />
 		<vertical xyz="0.0 0.0 1.0" />
 		<lookat xyz="0.0 0.0 1.0" />
 	</camera>
-
 </world>
+
+	
+ <!-- //Attempt 2 at initialzing robot in world urdf by setting links in limbo - failed -->
+	<!-- <robot name = "limbotactuation">
+	<link name="hor_act">
+      <inertial>
+        <origin xyz="0.5 0 0" rpy="0 0 0" />
+        <mass value="4" />
+        <inertia ixx="0.4" iyy="0.4" izz="0.4" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual>
+        <geometry>
+          <mesh filename="../../../model/stanbot/meshes/visual/HA.obj"/>
+        </geometry>
+      </visual>
+      <!-- <visual>
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+        <geometry>
+            <sphere radius="0.05"/>
+        </geometry>
+      </visual> -->
+    </link>
+    <link name="vert_act">
+      <inertial>
+        <origin xyz="0.5 0 0.6" rpy="0 0 0" />
+        <mass value="4" />
+        <inertia ixx="0.4" iyy="0.4" izz="0.4" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+      <visual>
+        <geometry>
+          <mesh filename="../../../model/stanbot/meshes/visual/VA.obj"/>
+        </geometry>
+      </visual>
+      <!-- <visual>
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+        <geometry>
+            <sphere radius="0.05"/>
+        </geometry>
+      </visual> -->
+    </link> -->
+
+    <!-- Joints -->
+    <!-- Vert actuation -->
+    <joint name="j1" type="prismatic">
+      <safety_controller k_position="100.0" k_velocity="40.0" soft_lower_limit="0.6" soft_upper_limit="0.9"/>
+      <origin rpy="0 0 0" xyz="0 0 0.6"/>
+      <parent link="hor_act"/>
+      <child link="ver_act"/>
+      <axis xyz="0 0 1"/>
+      <calibration falling="0" />
+      <limit effort="87" lower="0.6" upper="0.9" velocity="2.1750"/>
+    </joint>
+	</robot>
+
+
+   
+
+
+	<!-- <static_object name="Ground_With_Texture">
+		<origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
+	    <visual>
+	        <origin xyz="0.0 0.0 -0.0001" rpy="0 0 0" />
+	        <geometry>
+	            <box size="2 2 0.0002" />
+	        </geometry>
+	        <material name="material">
+		        <color rgba="0.5 0.5 0.5 1.0" />
+	        </material>
+	    </visual>
+	</static_object> -->
+	<!-- <dynamic_object name="rail">
+		<origin xyz="0.5 0.0 0.0" rpy="0 0 0" />
+		<inertial>
+        	<origin xyz="0 0 0" rpy="0 0 0" />
+        	<mass value="10" />
+        	<inertia ixx="1" iyy="1" izz="1" ixy="0" ixz="0" iyz="0" />
+      	</inertial>
+
+	    <visual>
+	        <origin xyz="0 0 0" rpy="0 0 0" />
+			<geometry>
+	            <mesh filename="../../model/test_objects/meshes/visual/Rail.obj" />
+	        </geometry>
+	    </visual>
+
+		<visual>
+	        <origin xyz="0 0 0.06" rpy="0 0 0" />
+	        <geometry>
+	            <box size="0.1 0.1 0.15" />
+	        </geometry>
+	        <material name="material">
+		        <color rgba="1 1 1 1.0" />
+	        </material>
+	    </visual>
+
+	    <collision>
+	        <origin xyz="0 0 0.06" rpy="0 0 0" />
+	        <geometry>
+	            <box size="0.1 0.1 0.15" />
+	        </geometry>
+	    </collision>
+	</dynamic_object>
+
+	<dynamic_object name="HA">
+		<origin xyz="0.5 0.0 0.0" rpy="0 0 0" />
+		<inertial>
+        	<origin xyz="0 0 0" rpy="0 0 0" />
+        	<mass value="10" />
+        	<inertia ixx="1" iyy="1" izz="1" ixy="0" ixz="0" iyz="0" />
+      	</inertial>
+
+	    <visual>
+	        <origin xyz="0 0 0" rpy="0 0 0" />
+			<geometry>
+	            <mesh filename="../../model/test_objects/meshes/visual/HA.obj" />
+	        </geometry>
+	    </visual>
+
+		<visual>
+	        <origin xyz="0 0 0.06" rpy="0 0 0" />
+	        <geometry>
+	            <box size="0.1 0.1 0.15" />
+	        </geometry>
+	        <material name="material">
+		        <color rgba="1 1 1 1.0" />
+	        </material>
+	    </visual>
+
+	    <collision>
+	        <origin xyz="0 0 0.06" rpy="0 0 0" />
+	        <geometry>
+	            <box size="0.1 0.1 0.15" />
+	        </geometry>
+	    </collision>
+	</dynamic_object>
+
+	<dynamic_object name="VA">
+		<origin xyz="0.5 0.0 0.6" rpy="0 0 0" />
+		<inertial>
+        	<origin xyz="0 0 0" rpy="0 0 0" />
+        	<mass value="10" />
+        	<inertia ixx="1" iyy="1" izz="1" ixy="0" ixz="0" iyz="0" />
+      	</inertial>
+
+	    <visual>
+	        <origin xyz="0 0 0" rpy="0 0 0" />
+			<geometry>
+	            <mesh filename="../../model/test_objects/meshes/visual/VA.obj" />
+	        </geometry>
+	    </visual>
+
+		<visual>
+	        <origin xyz="0 0 0.06" rpy="0 0 0" />
+	        <geometry>
+	            <box size="0.1 0.1 0.15" />
+	        </geometry>
+	        <material name="material">
+		        <color rgba="1 1 1 1.0" />
+	        </material>
+	    </visual>
+
+	    <collision>
+	        <origin xyz="0 0 0.06" rpy="0 0 0" />
+	        <geometry>
+	            <box size="0.1 0.1 0.15" />
+	        </geometry>
+	    </collision>
+	</dynamic_object>
+
+	//the other end of limbo setup
+
+		<dynamic_object name="rail2">
+		<origin xyz="0.5 1.0 0.0" rpy="0 0 0" />
+		<inertial>
+        	<origin xyz="0 0 0" rpy="0 0 0" />
+        	<mass value="10" />
+        	<inertia ixx="1" iyy="1" izz="1" ixy="0" ixz="0" iyz="0" />
+      	</inertial>
+
+	    <visual>
+	        <origin xyz="0 0 0" rpy="0 0 0" />
+			<geometry>
+	            <mesh filename="../../model/test_objects/meshes/visual/Rail.obj" />
+	        </geometry>
+	    </visual>
+
+		<visual>
+	        <origin xyz="0 0 0.06" rpy="0 0 0" />
+	        <geometry>
+	            <box size="0.1 0.1 0.15" />
+	        </geometry>
+	        <material name="material">
+		        <color rgba="1 1 1 1.0" />
+	        </material>
+	    </visual>
+
+	    <collision>
+	        <origin xyz="0 0 0.06" rpy="0 0 0" />
+	        <geometry>
+	            <box size="0.1 0.1 0.15" />
+	        </geometry>
+	    </collision>
+	</dynamic_object>
+
+	<dynamic_object name="HA2">
+		<origin xyz="0.5 1.0 0.0" rpy="0 0 0" />
+		<inertial>
+        	<origin xyz="0 0 0" rpy="0 0 0" />
+        	<mass value="10" />
+        	<inertia ixx="1" iyy="1" izz="1" ixy="0" ixz="0" iyz="0" />
+      	</inertial>
+
+	    <visual>
+	        <origin xyz="0 0 0" rpy="0 0 0" />
+			<geometry>
+	            <mesh filename="../../model/test_objects/meshes/visual/HA.obj" />
+	        </geometry>
+	    </visual>
+
+		<visual>
+	        <origin xyz="0 0 0.06" rpy="0 0 0" />
+	        <geometry>
+	            <box size="0.1 0.1 0.15" />
+	        </geometry>
+	        <material name="material">
+		        <color rgba="1 1 1 1.0" />
+	        </material>
+	    </visual>
+
+	    <collision>
+	        <origin xyz="0 0 0.06" rpy="0 0 0" />
+	        <geometry>
+	            <box size="0.1 0.1 0.15" />
+	        </geometry>
+	    </collision>
+	</dynamic_object>
+
+	<dynamic_object name="VA2">
+		<origin xyz="0.5 1.0 0.6" rpy="0 0 0" />
+		<inertial>
+        	<origin xyz="0 0 0" rpy="0 0 0" />
+        	<mass value="10" />
+        	<inertia ixx="1" iyy="1" izz="1" ixy="0" ixz="0" iyz="0" />
+      	</inertial>
+
+	    <visual>
+	        <origin xyz="0 0 0" rpy="0 0 0" />
+			<geometry>
+	            <mesh filename="../../model/test_objects/meshes/visual/VA.obj" />
+	        </geometry>
+	    </visual>
+
+		<visual>
+	        <origin xyz="0 0 0.06" rpy="0 0 0" />
+	        <geometry>
+	            <box size="0.1 0.1 0.15" />
+	        </geometry>
+	        <material name="material">
+		        <color rgba="1 1 1 1.0" />
+	        </material>
+	    </visual>
+
+	    <collision>
+	        <origin xyz="0 0 0.06" rpy="0 0 0" />
+	        <geometry>
+	            <box size="0.1 0.1 0.15" />
+	        </geometry>
+	    </collision>
+	</dynamic_object> -->
+
+	
+
