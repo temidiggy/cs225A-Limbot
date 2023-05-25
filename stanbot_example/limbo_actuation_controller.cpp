@@ -67,7 +67,7 @@ int main() {
 
 	// set desired joint posture to be the initial robot configuration
 	VectorXd q_init_desired = robot->_q;
-	joint_task->_desired_position << q_init_desired(0) + 0.25;
+	joint_task->_desired_position << q_init_desired(1) - 3, q_init_desired(0) + 0.25;
 	//cout<< "q_init_desired" << q_init_desired.transpose()<<"this is the end" << endl; 
 
 

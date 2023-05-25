@@ -1,6 +1,16 @@
 <?xml version='1.0' encoding='utf-8'?>
 <robot name="stanbot">
 
+<!-- this is actually limbot -->
+
+    <link name ="ground_link"> <!-- added -->
+      <inertial>
+        <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
+        <mass value="0.001" />
+        <inertia ixx="1E-06" ixy="0.0" ixz="0.0" iyy="1E-06" iyz="0.0" izz="1E-06" />
+      </inertial>
+    </link>
+
     <link name="right_foot">
       <inertial>
         <origin xyz="0 0 0" rpy="0 0 0" />
@@ -103,6 +113,21 @@
           <mesh filename="../../../model/stanbot/meshes/visual/chest_ascii.obj"/>
         </geometry>
       </visual>
+       <collision>
+	        <origin xyz="0 0 0.2" rpy="0 0 0" />
+	        <geometry>
+  11        <box size="0.28 0.2 0.32" />
+  12      </geometry>
+	    </collision>
+        <!-- <visual>
+   9      <origin xyz="0 0 0.16" rpy="0 0 0" />
+	        <geometry>
+  11        <box size="0.28 0.2 0.32" />
+  12      </geometry>
+  13      <material name="Cyan">
+  14        <color rgba="0 1.0 1.0 1.0"/>
+  15      </material>
+  16    </visual> -->
     </link>
 
     <link name="left_thigh">
@@ -290,6 +315,23 @@
     </link>
 
     <!-- Extraneous virtual links for spherical joints -->
+   
+    <link name="right_foot_px">
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <mass value="1e-10" />
+        <inertia ixx="1e-10" iyy="1e-10" izz="1e-10" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+    </link>
+
+    <link name="right_foot_py">
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <mass value="1e-10" />
+        <inertia ixx="1e-10" iyy="1e-10" izz="1e-10" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+    </link>
+
     <link name="left_foot_rx">
       <inertial>
         <origin xyz="0 0 0" rpy="0 0 0" />
@@ -298,13 +340,21 @@
       </inertial>
     </link>
 
-    <link name="left_foot_ry">
+    <link name="left_foot_ry"> <!-- <connects right foot to ground link" -->
       <inertial>
         <origin xyz="0 0 0" rpy="0 0 0" />
         <mass value="1e-10" />
         <inertia ixx="1e-10" iyy="1e-10" izz="1e-10" ixy="0" ixz="0" iyz="0" />
       </inertial>
     </link>
+
+    <!-- <link name="left_foot_connect">
+      <inertial>
+        <origin xyz="0 0 0" rpy="0 0 0" />
+        <mass value="1e-10" />
+        <inertia ixx="1e-10" iyy="1e-10" izz="1e-10" ixy="0" ixz="0" iyz="0" />
+      </inertial>
+    </link> -->
 
     <link name="right_hip_rx">
       <inertial>
@@ -491,7 +541,32 @@
     </link>
 
     <!-- Joints -->
+
     <!-- Right Leg -->
+    <joint name="base_prismatic_y_right" type="prismatic"> <!-- added -->
+      <origin xyz = "0 0 0" rpy = "0 0 0"/> 
+      <parent link="ground_link"/>
+      <child link="right_foot_py"/>
+      <axis xyz="0 1 0"/>
+      <limit effort="87" lower="-2.8973" upper="2.8973" velocity="2.1750"/>
+    </joint>
+
+    <joint name="base_prismatic_x_right" type="prismatic"> <!-- added -->
+      <origin xyz = "0 0 0" rpy = "0 0 0"/> 
+      <parent link="right_foot_py"/>
+      <child link="right_foot_px"/>
+      <axis xyz="1 0 0"/>
+      <limit effort="87" lower="-2.8973" upper="2.8973" velocity="2.1750"/>
+    </joint>
+
+    <joint name="base_revolute" type="revolute"> <!-- added -->
+      <origin xyz = "0 0 0" rpy = "0 0 0"/> 
+      <parent link="right_foot_px"/>
+      <child link="right_foot"/>
+      <axis xyz="0 0 1"/>
+      <limit effort="87" lower="-2.8973" upper="2.8973" velocity="2.1750"/>
+    </joint>
+
     <joint name="j1" type="revolute">
       <safety_controller k_position="100.0" k_velocity="40.0" soft_lower_limit="-2.8973" soft_upper_limit="2.8973"/>
       <origin rpy="0 0 0" xyz="0 0.03 0.02"/>
@@ -541,6 +616,8 @@
     </joint>
 
     <!-- Left Leg -->
+  
+    
     <joint name="j6" type="revolute">
       <safety_controller k_position="100.0" k_velocity="40.0" soft_lower_limit="-3.0718" soft_upper_limit="-0.0698"/>
       <!-- <origin rpy="0 0 0" xyz="0.06 0 -0.15"/> -->

@@ -349,7 +349,7 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* limbo_robot, 
 			sim->setJointTorques(robot_name, command_torques + ui_force_command_torques + g - 1 * robot->_M * robot->_dq);
 			sim->setJointTorques(limbo_robot_name, limbo_command_torques + ui_force_command_torques + g_limbo - 1 * limbo_robot->_M * limbo_robot->_dq);}
 		else{
-			sim->setJointTorques(robot_name, command_torques + g);
+			sim->setJointTorques(robot_name, command_torques + g - 1* robot->_M * robot->_dq);
 			sim->setJointTorques(limbo_robot_name, limbo_command_torques + g_limbo);
 			//sim->setJointTorques(limbo_robot_name, limbo_command_torques );
 
