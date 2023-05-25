@@ -56,6 +56,22 @@ int main() {
 	int dof = robot->dof();
 	VectorXd command_torques = VectorXd::Zero(dof);
 	MatrixXd N_prec = MatrixXd::Identity(dof, dof);
+	MatrixXd KV = MatrixXd::Identity(dof, dof)*(0);
+	//cout << KV <<endl;
+
+
+	// partial joint task for the right foot skates (x, y, theta) for right foot 
+	std::vector<int> joint_selection {0, 1, 2};
+	auto skate_task = new Sai2Primitives::PartialJointTask(robot, joint_selection);
+	Vector3d x_pos_right_foot_init;
+	x_pos_right_foot_init = skate_task->_current_position;
+
+	skate_task->_use_interpolation_flag = true;
+	skate_task->_use_velocity_saturation_flag = false;
+
+	VectorXd skate_task_torques = VectorXd::Zero(dof);
+	skate_task->_kp = 100;
+	skate_task->_kv = 20;
 
 	// pose task for chest
 	string control_link = "chest";
@@ -73,10 +89,11 @@ int main() {
 
 	// set desired position and orientation to the initial configuration
 	Vector3d x_pos;
-	robot->positionInWorld(x_pos, control_link, control_point);
+	Vector3d x_pos_chest_init;
+	robot->positionInWorld(x_pos_chest_init, control_link, control_point);
 	Matrix3d x_ori;
 	robot->rotationInWorld(x_ori, control_link);
-	posori_task_chest->_desired_position = x_pos;
+	//posori_task_chest->_desired_position = x_pos;
 	posori_task_chest->_desired_orientation = x_ori; 
 
 	// pose task for left foot 
@@ -94,9 +111,10 @@ int main() {
 	posori_task_left_foot->_kv_ori = 40.0;
 
 	// set desired position and orientation to the initial configuration
-	robot->positionInWorld(x_pos, control_link, control_point);
+	Vector3d x_pos_left_foot_init;
+	robot->positionInWorld(x_pos_left_foot_init, control_link, control_point);
 	robot->rotationInWorld(x_ori, control_link);
-	posori_task_left_foot->_desired_position = x_pos + Vector3d(0.3, 0, 0.1);
+	//posori_task_left_foot->_desired_position = x_pos; //+ Vector3d(0.3, 0, 0.1);
 	posori_task_left_foot->_desired_orientation = x_ori; 
 
 	// pose task for right hand 
@@ -116,7 +134,8 @@ int main() {
 	// set two goal positions/orientations 
 	robot->positionInWorld(x_pos, control_link, control_point);
 	robot->rotationInWorld(x_ori, control_link);
-	posori_task_right_hand->_desired_position = x_pos + Vector3d(-0.3, 0, 0.1);
+	//posori_task_right_hand->_desired_position = x_pos; //Vector3d(-0.3, 0, 0.1);
+	posori_task_right_hand->_desired_orientation = x_ori; 
 	// posori_task_right_hand->_desired_orientation = AngleAxisd(-3*M_PI/4, Vector3d::UnitY()).toRotationMatrix() * AngleAxisd(0 * M_PI/4, Vector3d::UnitZ()).toRotationMatrix() * x_ori; 
 	// posori_task_right_hand->_desired_orientation = AngleAxisd(M_PI/2, Vector3d::UnitX()).toRotationMatrix() * \
 	// 											AngleAxisd(-M_PI/2, Vector3d::UnitY()).toRotationMatrix() * x_ori; 
@@ -138,7 +157,8 @@ int main() {
 	// set two goal positions/orientations 
 	robot->positionInWorld(x_pos, control_link, control_point);
 	robot->rotationInWorld(x_ori, control_link);
-	posori_task_left_hand->_desired_position = x_pos + Vector3d(0.3, 0, 0.1);
+	//posori_task_left_hand->_desired_position = x_pos; //Vector3d(0.3, 0, 0.1);
+	posori_task_left_hand->_desired_orientation = x_ori; 
 	// posori_task_left_hand->_desired_orientation = AngleAxisd(-3*M_PI/4, Vector3d::UnitY()).toRotationMatrix() * AngleAxisd(0 * M_PI/4, Vector3d::UnitZ()).toRotationMatrix() * x_ori; 
 	// posori_task_right_hand->_desired_orientation = AngleAxisd(M_PI/2, Vector3d::UnitX()).toRotationMatrix() * \
 	// 											AngleAxisd(-M_PI/2, Vector3d::UnitY()).toRotationMatrix() * x_ori; 
@@ -157,10 +177,12 @@ int main() {
 	posori_task_head->_kv_ori = 40.0;
 
 	// set two goal positions/orientations 
-	robot->positionInWorld(x_pos, control_link, control_point);
+	Vector3d x_pos_head_init;
+	robot->positionInWorld(x_pos_head_init, control_link, control_point);
 	robot->rotationInWorld(x_ori, control_link);
-	posori_task_head->_desired_position = x_pos;
-    posori_task_head->_desired_orientation = AngleAxisd(M_PI/3, Vector3d::UnitZ()).toRotationMatrix() * x_ori;
+	//posori_task_head->_desired_position = x_pos;
+	posori_task_head->_desired_orientation = x_ori; 
+    //posori_task_head->_desired_orientation = AngleAxisd(M_PI/3, Vector3d::UnitZ()).toRotationMatrix() * x_ori;
 
 	// joint task
 	auto joint_task = new Sai2Primitives::JointTask(robot);
@@ -168,8 +190,8 @@ int main() {
 	joint_task->_use_velocity_saturation_flag = true;
 
 	VectorXd joint_task_torques = VectorXd::Zero(dof);
-	joint_task->_kp = 100;
-	joint_task->_kv = 20;
+	joint_task->_kp = 400;
+	joint_task->_kv = 40;
 
 	// set desired joint posture to be the initial robot configuration
 	VectorXd q_init_desired = robot->_q;
@@ -190,7 +212,7 @@ int main() {
 	// create a timer
 	LoopTimer timer;
 	timer.initializeTimer();
-	timer.setLoopFrequency(1000); 
+	timer.setLoopFrequency(50); 
 	double start_time = timer.elapsedTime(); //secs
 	bool fTimerDidSleep = true;
 
@@ -204,34 +226,55 @@ int main() {
 
 		// update model
 		robot->updateModel();
+
+		// calculate torques for skate (controls the right foot which is fixed)
+		N_prec.setIdentity();
+		skate_task->_desired_position(0) =  - 0.1;
+		skate_task->_desired_position(1) =  - 0.1;
+		skate_task->_desired_position(2) =  0;  // radians 
+		skate_task->updateTaskModel(N_prec);
+		skate_task->computeTorques(skate_task_torques);
 		
-        // calculate torques for left foot 
-        N_prec.setIdentity();
+        // calculate torques for left foot
+		N_prec = skate_task->_N;
+		posori_task_left_foot->_desired_position(0) = 0.5;
+		posori_task_left_foot->_desired_position(1) = 0.2;
+		posori_task_left_foot->_desired_position(2) = 0;
 		posori_task_left_foot->updateTaskModel(N_prec);
 		posori_task_left_foot->computeTorques(posori_task_torques_left_foot);
 
 		// calculate torques to move right hand
-		N_prec = posori_task_left_foot->_N;
-		posori_task_right_hand->updateTaskModel(N_prec);
-		posori_task_right_hand->computeTorques(posori_task_torques_right_hand);
+		// N_prec = posori_task_left_foot->_N;
+		// posori_task_right_hand->updateTaskModel(N_prec);
+		// posori_task_right_hand->computeTorques(posori_task_torques_right_hand);
 
 		// calculate torques to move left hand
-		N_prec = posori_task_right_hand->_N;
-		posori_task_left_hand->updateTaskModel(N_prec);
-		posori_task_left_hand->computeTorques(posori_task_torques_left_hand);
+		// N_prec = posori_task_right_hand->_N;
+		// posori_task_left_hand->updateTaskModel(N_prec);
+		// posori_task_left_hand->computeTorques(posori_task_torques_left_hand);
 
-        // calculate torques to move head
-		N_prec = posori_task_left_hand->_N;
-	    posori_task_head->updateTaskModel(N_prec);
-		posori_task_head->computeTorques(posori_task_torques_head);
+		// calculate torques to move chest
+		N_prec = posori_task_left_foot->_N;
+		// posori_task_chest->_desired_position(0) = .5;
+		// posori_task_chest->_desired_position(1) = .5;
+		// posori_task_chest->_desired_position(2) = x_pos_chest_init(2);
+	    // posori_task_chest->updateTaskModel(N_prec);
+		// posori_task_chest->computeTorques(posori_task_torques_chest);
 
-        // calculate torques to keep joint space
-        N_prec = posori_task_head->_N;
+		//do partial joint tasks in the null space for the other joints; can use OG configs
+
+        //calculate torques to keep joint space
+        // N_prec = posori_task_chest->_N;
         joint_task->updateTaskModel(N_prec);
-        joint_task->computeTorques(joint_task_torques);
+       // joint_task->computeTorques(joint_task_torques);
 
 		// calculate torques 
-		command_torques = posori_task_torques_left_foot + posori_task_torques_right_hand + posori_task_torques_left_hand + posori_task_torques_head + joint_task_torques;  // gravity compensation handled in sim
+		//command_torques = skate_task_torques + posori_task_torques_left_foot + posori_task_torques_right_hand + posori_task_torques_left_hand + posori_task_torques_head + joint_task_torques;  // gravity compensation handled in sim
+		//command_torques = skate_task_torques + posori_task_torques_left_foot + posori_task_torques_chest + joint_task_torques;
+		//command_torques = skate_task_torques + posori_task_torques_left_foot + joint_task_torques - N_prec.transpose()*robot->_M*KV*robot->_dq;
+		command_torques = skate_task_torques + posori_task_torques_left_foot + joint_task_torques; 
+
+
 
 		// execute redis write callback
 		redis_client.executeWriteCallback(0);	
