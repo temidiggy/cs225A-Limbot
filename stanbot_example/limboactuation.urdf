@@ -62,14 +62,37 @@
 	             <cylinder radius="0.025" length="0.6"/>
 	        </geometry>
 	    </collision>
+      
   </link>
   
+  <link name ="ground_link"> <!-- added -->
+      <inertial>
+        <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
+        <mass value="0.001" />
+        <inertia ixx="1E-06" ixy="0.0" ixz="0.0" iyy="1E-06" iyz="0.0" izz="1E-06" />
+      </inertial>
+    </link>
+
   
     
 
     <!-- Joints -->
     <!-- vertical actuation for VA- HA -->
-    <joint name="j1" type="prismatic">
+     <joint name="j1" type="prismatic">
+      <safety_controller k_position="100.0" k_velocity="40.0" soft_lower_limit="0.6" soft_upper_limit="0.9"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <parent link="ground_link"/>
+      <child link="HA"/>
+      <axis xyz="1 0 0"/>
+      <!-- <calibration falling="0" /> -->
+      <calibration rising="0" />  
+      <!-- not sure about what to set rising to -->
+
+      <limit effort="87" lower="0.6" upper="0.9" velocity="2.1750"/>
+
+     <!-- fixed joint between VA and stick  -->
+    </joint>
+    <joint name="j2" type="prismatic">
       <safety_controller k_position="100.0" k_velocity="40.0" soft_lower_limit="0.6" soft_upper_limit="0.9"/>
       <origin rpy="0 0 0" xyz="0 0 0.6"/>
       <parent link="HA"/>
@@ -83,6 +106,8 @@
 
      <!-- fixed joint between VA and stick  -->
     </joint>
+   
+
    
 
      <!-- fixed joint between VA-2 and stick  -->
