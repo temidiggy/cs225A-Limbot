@@ -62,12 +62,12 @@ int main() {
 	joint_task->_use_velocity_saturation_flag = true;
 
 	VectorXd joint_task_torques = VectorXd::Zero(dof);
-	joint_task->_kp = 100;
-	joint_task->_kv = 20;
+	joint_task->_kp = 10;
+	joint_task->_kv = 5;
 
 	// set desired joint posture to be the initial robot configuration
 	VectorXd q_init_desired = robot->_q;
-	joint_task->_desired_position << q_init_desired(1) - 3, q_init_desired(0) + 0.25;
+	joint_task->_desired_position << q_init_desired(1) - 3, q_init_desired(0);
 	//cout<< "q_init_desired" << q_init_desired.transpose()<<"this is the end" << endl; 
 
 

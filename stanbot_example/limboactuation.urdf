@@ -49,12 +49,12 @@
           <mesh filename="../../../model/limbot/VA.obj"/>
         </geometry>
       </visual>
-      <visual>
+      <!-- <visual>
 	        <origin xyz="0 0 0.6" rpy="-1.5715 0 0" />
 	        <geometry>
 	             <cylinder radius="0.025" length="0.6"/>
           </geometry>
-      </visual> 
+      </visual>  -->
 
       <collision>
 	        <origin xyz="0 0 0.6" rpy="-1.5715 0 0" />
