@@ -3,7 +3,7 @@
   <link name="HA">
       <inertial>
         <origin xyz="0 0 0" rpy="0 0 0" />
-        <mass value="4" />
+        <mass value="100" />
         <inertia ixx="0.4" iyy="0.4" izz="0.4" ixy="0" ixz="0" iyz="0" />
       </inertial>
       
@@ -14,7 +14,7 @@
         </geometry>
       </visual>
       <visual>
-      <origin xyz="0 0.6 0" rpy="0 0 0" />
+      <origin xyz="0 0.55 0" rpy="0 0 0" />
         <geometry>
           <mesh filename="../../../model/limbot/HA.obj"/>
         </geometry>
@@ -29,7 +29,7 @@
   <link name="VA">
       <inertial>
         <origin xyz="0 0 0.6" rpy="0 0 0" />
-        <mass value="4" />
+        <mass value="100" />
         <inertia ixx="0.4" iyy="0.4" izz="0.4" ixy="0" ixz="0" iyz="0" />
       </inertial>
       <visual>
@@ -38,13 +38,13 @@
         </geometry>
       </visual>
       <visual>
-        <origin xyz="0 0 0.6" rpy="0 0 0" />        
+        <origin xyz="0 0 0.55" rpy="0 0 0" />        
         <geometry>
           <mesh filename="../../../model/limbot/Limbo_stick_brown.obj"/>
         </geometry>
       </visual>
       <visual>
-       <origin xyz="0 0.6 0" rpy="0 0 0" />
+       <origin xyz="0 0.55 0" rpy="0 0 0" />
         <geometry>
           <mesh filename="../../../model/limbot/VA.obj"/>
         </geometry>

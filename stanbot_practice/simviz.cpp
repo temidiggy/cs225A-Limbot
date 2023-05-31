@@ -16,7 +16,7 @@
 
 #include "uiforce/UIForceWidget.h"
 
-#include <iostream> 
+#include <iostream>
 #include <string>
 
 #include <signal.h>
@@ -30,12 +30,7 @@ using namespace Eigen;
 
 const string world_file = "./resources/world_stan.urdf";
 const string robot_file = "./resources/stanbot.urdf";
-
-const string robot_file_2 = "./resources/limboactuation.urdf"; 
-
-
 const string robot_name = "stanbot";
-const string limbo_robot_name = "limboactuation";
 const string camera_name = "camera_fixed";
 
 #include "redis_keys.h"
@@ -43,7 +38,7 @@ const string camera_name = "camera_fixed";
 RedisClient redis_client;
 
 // simulation function prototype
-void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* limbo_robot, Simulation::Sai2Simulation* sim, UIForceWidget *ui_force_widget);
+void simulation(Sai2Model::Sai2Model* robot, Simulation::Sai2Simulation* sim, UIForceWidget *ui_force_widget);
 
 // callback to print glfw errors
 void glfwError(int error, const char* description);
@@ -85,7 +80,7 @@ int main() {
 	graphics->getCameraPose(camera_name, camera_pos, camera_vertical, camera_lookat);
 	graphics->_world->setBackgroundColor(66.0/255, 135.0/255, 245.0/255);  // set blue background 
 	// graphics->showLinkFrame(true, "toro", "", 0.25);
-	
+
 	// load robots
 	auto robot = new Sai2Model::Sai2Model(robot_file, false);
 	robot->_q.setZero();
@@ -95,16 +90,10 @@ int main() {
 	// add initial robot configuration here if needed 
 	robot->updateModel();
 
-	auto limbo_robot = new Sai2Model::Sai2Model(robot_file_2, false);
-	limbo_robot->_q.setZero();
-	limbo_robot->updateModel();
-
 	// load simulation world
 	auto sim = new Simulation::Sai2Simulation(world_file, false);
 	sim->setJointPositions(robot_name, robot->_q);
 	sim->setJointVelocities(robot_name, robot->_dq);
-	sim->setJointPositions(limbo_robot_name, limbo_robot->_q);
-	sim->setJointVelocities(limbo_robot_name, limbo_robot->_dq);
 	sim->setCollisionRestitution(0);
 	sim->setCoeffFrictionStatic(0);
 	sim->setCoeffFrictionDynamic(0);
@@ -158,7 +147,7 @@ int main() {
 	glewInitialize();
 
 	fSimulationRunning = true;
-	thread sim_thread(simulation, robot, limbo_robot,sim, ui_force_widget);
+	thread sim_thread(simulation, robot, sim, ui_force_widget);
 	
 	// while window is open:
 	while (!glfwWindowShouldClose(window) && fSimulationRunning)
@@ -167,7 +156,6 @@ int main() {
 		int width, height;
 		glfwGetFramebufferSize(window, &width, &height);
 		graphics->updateGraphics(robot_name, robot);
-		graphics->updateGraphics(limbo_robot_name, limbo_robot);
 		graphics->render(camera_name, width, height);
 
 		// swap buffers
@@ -281,21 +269,13 @@ int main() {
 }
 
 //------------------------------------------------------------------------------
-void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* limbo_robot, Simulation::Sai2Simulation* sim, UIForceWidget *ui_force_widget) {
+void simulation(Sai2Model::Sai2Model* robot, Simulation::Sai2Simulation* sim, UIForceWidget *ui_force_widget) {
 
 	int dof = robot->dof();
 	VectorXd command_torques = VectorXd::Zero(dof);
 	redis_client.setEigenMatrixJSON(JOINT_TORQUES_COMMANDED_KEY, command_torques);
 	string controller_status = "0";
 	redis_client.set(CONTROLLER_RUNNING_KEY, controller_status);
-
-	int limbo_dof = limbo_robot->dof();
-	VectorXd limbo_command_torques = VectorXd::Zero(limbo_dof);
-
-	redis_client.setEigenMatrixJSON(LIMBO_JOINT_TORQUES_COMMANDED_KEY, limbo_command_torques);
-	string limbo_controller_status = "0";
-	redis_client.set(LIMBO_CONTROLLER_RUNNING_KEY, limbo_controller_status);
-
 
 	// create a timer
 	LoopTimer timer;
@@ -306,8 +286,6 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* limbo_robot, 
 
 	// init variables
 	VectorXd g(dof);
-	VectorXd g_limbo(limbo_dof);
-
 
 	Eigen::Vector3d ui_force;
 	ui_force.setZero();
@@ -322,13 +300,10 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* limbo_robot, 
 	// add to read callback
 	redis_client.addStringToReadCallback(0, CONTROLLER_RUNNING_KEY, controller_status);
 	redis_client.addEigenToReadCallback(0, JOINT_TORQUES_COMMANDED_KEY, command_torques);
-	redis_client.addEigenToReadCallback(0, LIMBO_JOINT_TORQUES_COMMANDED_KEY, limbo_command_torques);
 
 	// add to write callback
 	redis_client.addEigenToWriteCallback(0, JOINT_ANGLES_KEY, robot->_q);
 	redis_client.addEigenToWriteCallback(0, JOINT_VELOCITIES_KEY, robot->_dq);
-	redis_client.addEigenToWriteCallback(0, LIMBO_JOINT_ANGLES_KEY, limbo_robot->_q);
-	redis_client.addEigenToWriteCallback(0, LIMBO_JOINT_VELOCITIES_KEY, limbo_robot->_dq);
 
 	while (fSimulationRunning) {
 		fTimerDidSleep = timer.waitForNextLoop();
@@ -338,23 +313,16 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* limbo_robot, 
 
 		// get gravity torques
 		robot->gravityVector(g);
-		limbo_robot->gravityVector(g_limbo);
-
 		
 		// get ui force 
 		ui_force_widget->getUIForce(ui_force);
 		ui_force_widget->getUIJointTorques(ui_force_command_torques);
 
-		if (fRobotLinkSelect){
+		if (fRobotLinkSelect)
 			sim->setJointTorques(robot_name, command_torques + ui_force_command_torques + g - 1 * robot->_M * robot->_dq);
-			sim->setJointTorques(limbo_robot_name, limbo_command_torques + ui_force_command_torques + g_limbo - 1 * limbo_robot->_M * limbo_robot->_dq);}
-		else{
-			sim->setJointTorques(robot_name, command_torques + g - 1* robot->_M * robot->_dq);
-			sim->setJointTorques(limbo_robot_name, limbo_command_torques + g_limbo);
-			//sim->setJointTorques(limbo_robot_name, limbo_command_torques );
+		else
+			sim->setJointTorques(robot_name, command_torques + g);
 
-
-			}
 		// integrate forward
 		double curr_time = timer.elapsedTime();
 		double loop_dt = curr_time - last_time; 
@@ -364,10 +332,6 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* limbo_robot, 
 		sim->getJointPositions(robot_name, robot->_q);
 		sim->getJointVelocities(robot_name, robot->_dq);
 		robot->updateModel();
-
-		sim->getJointPositions(limbo_robot_name, limbo_robot->_q);
-		sim->getJointVelocities(limbo_robot_name, limbo_robot->_dq);
-		limbo_robot->updateModel();
 
 		// visualizer
 		// robot->_q = redis_client.getEigenMatrixJSON(JOINT_ANGLES_KEY);

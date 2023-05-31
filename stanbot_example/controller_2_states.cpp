@@ -21,8 +21,6 @@ using namespace std;
 using namespace Eigen;
 
 const string robot_file = "./resources/stanbot.urdf";	
-const string robot_file_2 = "./resources/limboactuation.urdf"; 
-
 
 enum Control
 {
@@ -60,15 +58,7 @@ int main() {
 	auto robot = new Sai2Model::Sai2Model(robot_file, false);
 	robot->_q = redis_client.getEigenMatrixJSON(JOINT_ANGLES_KEY);
 	robot->_dq = redis_client.getEigenMatrixJSON(JOINT_VELOCITIES_KEY);
-	robot->updateModel();
-
-
-	auto limbo_robot = new Sai2Model::Sai2Model(robot_file, false);
-	limbo_robot->_q = redis_client.getEigenMatrixJSON(LIMBO_JOINT_ANGLES_KEY);
-	limbo_robot->_dq = redis_client.getEigenMatrixJSON(LIMBO_JOINT_VELOCITIES_KEY);
-	limbo_robot->updateModel();
-
-		
+	robot->updateModel();	
 
 	// prepare controller
 	int dof = robot->dof();
@@ -77,20 +67,23 @@ int main() {
 	MatrixXd KV = MatrixXd::Identity(dof, dof)*(0);
 	//cout << KV <<endl;
 
-
+	
+	
+	
+	
 	
 	// partial joint task for the right foot skates (x, y, theta) for right foot 
 	std::vector<int> joint_selection {0, 1, 2};
-	// auto skate_task = new Sai2Primitives::PartialJointTask(robot, joint_selection);
-	// Vector3d x_pos_right_foot_init;
-	// x_pos_right_foot_init = skate_task->_current_position;
+	auto skate_task = new Sai2Primitives::PartialJointTask(robot, joint_selection);
+	Vector3d x_pos_right_foot_init;
+	x_pos_right_foot_init = skate_task->_current_position;
 
-	// skate_task->_use_interpolation_flag = true;
-	// skate_task->_use_velocity_saturation_flag = false;
+	skate_task->_use_interpolation_flag = true;
+	skate_task->_use_velocity_saturation_flag = false;
 
-	// VectorXd skate_task_torques = VectorXd::Zero(dof);
-	// skate_task->_kp = 100;
-	// skate_task->_kv = 20;
+	VectorXd skate_task_torques = VectorXd::Zero(dof);
+	skate_task->_kp = 100;
+	skate_task->_kv = 20;
 
 	// pose task for chest
 	string control_link = "chest";
@@ -224,9 +217,6 @@ int main() {
 	redis_client.addEigenToReadCallback(0, JOINT_ANGLES_KEY, robot->_q);
 	redis_client.addEigenToReadCallback(0, JOINT_VELOCITIES_KEY, robot->_dq);
 
-	redis_client.addEigenToReadCallback(0, LIMBO_JOINT_ANGLES_KEY, limbo_robot->_q);
-	redis_client.addEigenToReadCallback(0, LIMBO_JOINT_VELOCITIES_KEY, limbo_robot->_dq);
-
 	// add to write callback
 	redis_client.addStringToWriteCallback(0, CONTROLLER_RUNNING_KEY, controller_status);
 	redis_client.addEigenToWriteCallback(0, JOINT_TORQUES_COMMANDED_KEY, command_torques);
@@ -307,7 +297,6 @@ int main() {
 
 		// update model
 		robot->updateModel();
-		limbo_robot->updateModel();
 
 		// calculate torques for skate (controls the right foot which is fixed)
 		
@@ -365,7 +354,7 @@ int main() {
 		//command_torques = skate_task_torques + posori_task_torques_left_foot + joint_task_torques - N_prec.transpose()*robot->_M*KV*robot->_dq;
 		//command_torques = skate_task_torques + posori_task_torques_left_foot + joint_task_torques; 
 		//command_torques = squat_task_torques + posori_task_torques_left_foot;
-		cout << limbo_robot->_q<<endl;
+
 		// execute redis write callback
 		redis_client.executeWriteCallback(0);	
 

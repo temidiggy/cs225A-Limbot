@@ -79,3 +79,5 @@ add_subdirectory(toro_example)
 add_subdirectory(stanbot_example)
 add_subdirectory(collision_demo)
 add_subdirectory(template_project)
+add_subdirectory(stanbot_angle_choosing)
+
