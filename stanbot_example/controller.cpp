@@ -81,16 +81,15 @@ int main() {
 	
 	// partial joint task for the right foot skates (x, y, theta) for right foot 
 	std::vector<int> joint_selection {0, 1, 2};
-	// auto skate_task = new Sai2Primitives::PartialJointTask(robot, joint_selection);
-	// Vector3d x_pos_right_foot_init;
-	// x_pos_right_foot_init = skate_task->_current_position;
+	auto skate_task = new Sai2Primitives::PartialJointTask(robot, joint_selection);
+	Vector3d position_desired_skate;
+	
+	skate_task->_use_interpolation_flag = true;
+	skate_task->_use_velocity_saturation_flag = false;
 
-	// skate_task->_use_interpolation_flag = true;
-	// skate_task->_use_velocity_saturation_flag = false;
-
-	// VectorXd skate_task_torques = VectorXd::Zero(dof);
-	// skate_task->_kp = 100;
-	// skate_task->_kv = 20;
+	VectorXd skate_task_torques = VectorXd::Zero(dof);
+	skate_task->_kp = 400;
+	skate_task->_kv = 40;
 
 	// pose task for chest
 	string control_link = "chest";
@@ -220,7 +219,7 @@ int main() {
 	redis_client.createReadCallback(0);
 	redis_client.createWriteCallback(0);
 
-	// add to read callback
+	// add to read callback 
 	redis_client.addEigenToReadCallback(0, JOINT_ANGLES_KEY, robot->_q);
 	redis_client.addEigenToReadCallback(0, JOINT_VELOCITIES_KEY, robot->_dq);
 
@@ -239,7 +238,7 @@ int main() {
 	bool fTimerDidSleep = true;
 
 
-	std::vector<int> joint_selection_2 {5, 6, 11,  12, 16 , 31};
+	//std::vector<int> joint_selection_2 {5, 6, 11,  12, 16 , 31};
 	/*5 - right thigh to right calf
 		Right Hip to right thigh - 6
 	Left hip to left thigh - 11
@@ -248,19 +247,17 @@ int main() {
 	Head to chest joint - 31
 
 	*/
-	// auto squat_task = new Sai2Primitives::PartialJointTask(robot, joint_selection_2);
-	// VectorXd squat_init;
-	// squat_init = squat_task->_current_position;
-	// VectorXd theta_desired(6);
-	// theta_desired << squat_init(0) + 0.4, squat_init(1) + 0.3, squat_init(2) - 0.3,   squat_init(3) - 0.3, squat_init(4) + 0.3, squat_init(5) + 0.3;
+	std::vector<int> joint_selection_2 {3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32};
+	auto squat_task = new Sai2Primitives::PartialJointTask(robot, joint_selection_2);
+	
+	squat_task->_use_interpolation_flag = true;
+	squat_task->_use_velocity_saturation_flag = false;
 
+	VectorXd squat_task_torques = VectorXd::Zero(dof);
+	squat_task->_kp = 400;
+	squat_task->_kv = 40;
 
-	// squat_task->_use_interpolation_flag = true;
-	// squat_task->_use_velocity_saturation_flag = false;
-
-	// VectorXd squat_task_torques = VectorXd::Zero(dof);
-	// squat_task->_kp = 100;
-	// squat_task->_kv = 20;
+	VectorXd position_desired_squat_task = VectorXd::Zero(3);
 
 	// joint task
 	auto joint_task_init = new Sai2Primitives::JointTask(robot);
@@ -274,8 +271,8 @@ int main() {
 	// set desired joint posture to be the initial robot configuration
 	VectorXd q_init_desired = VectorXd::Zero(dof);
 	q_init_desired = robot->_q;
-	q_init_desired(0) = q_init_desired(0) - 0.8;		//1
-	q_init_desired(1) = q_init_desired(1) + 0.3;
+	q_init_desired(0) = q_init_desired(0) - 0.5;		//1
+	q_init_desired(1) = q_init_desired(1) + 0.2;
 	joint_task_init->_desired_position = q_init_desired;
 
 
@@ -286,9 +283,7 @@ int main() {
 	joint_task->_kp = 100;
 	joint_task->_kv = 20;
 
-	VectorXd q_desired = VectorXd::Zero(dof);
-
-
+	VectorXd config_desired = VectorXd::Zero(30);
 	VectorXd joint_task_torques = VectorXd::Zero(dof);
 
 	
@@ -333,18 +328,29 @@ int main() {
 			//cout << "q_xy" << q_xy <<"q_dex_xy" << q_des_xy << endl;
 			if ((q_xy- q_des_xy).norm() < 0.05) {
 				state = DO_LIMBO;
-				q_init_desired = robot->_q;
-						cout <<"transitioning from approach to do limbo"  << endl;
-
+				//q_init_desired = robot->_q;
+				position_desired_squat_task << robot->_q(0) -0.5, robot->_q(1)+ 0.2, robot->_q(2);
+				cout << position_desired_squat_task << endl;
+				cout <<"transitioning from approach to do limbo"  << endl;
+				//VectorXd curr_position = VectorXd::Zero(3);
+				//curr_position << robot->_q(0) , robot->_q(1), robot->_q(2)
 			}
 			
 		} else if (state == DO_LIMBO ){
+			//go into squat pose
+			config_desired << 0.780684, -1.55568,  0.707358, -0.0222702,  -0.330537,   0.440034, 0.00584054,  -0.642971,    1.49804,  -0.785403, 0.00887305,  -0.110356,  -0.803278,   0.440446,  0.0135542,   0.385272,   0.245029,   0.157509 , -0.124961 , -0.0191472,   0.653568, 0.0595868 ,  0.365534 , 0.0893997,  0.0982455, -0.0876818, -0.0180936 , 0.0367051 ,  0.447108, 0.00715255;
+			
 			N_prec.setIdentity();
-			q_desired << q_init_desired(0) - 0.3, q_init_desired(1), q_init_desired(2), 0.780684, -1.55568,  0.707358, -0.0222702,  -0.330537,   0.440034, 0.00584054,  -0.642971,    1.49804,  -0.785403, 0.00887305,  -0.110356,  -0.803278,   0.440446,  0.0135542,   0.385272,   0.245029,   0.157509 , -0.124961 , -0.0191472,   0.653568, 0.0595868 ,  0.365534 , 0.0893997,  0.0982455, -0.0876818, -0.0180936 , 0.0367051 ,  0.447108, 0.00715255;
-			joint_task_init->_desired_position = q_desired;
-			joint_task_init->updateTaskModel(N_prec);
-			joint_task_init->computeTorques(joint_task_torques_init);
-			command_torques = joint_task_torques_init;
+			squat_task->_desired_position = config_desired;
+			squat_task->updateTaskModel(N_prec);
+			squat_task->computeTorques(squat_task_torques);
+			
+			//move forward in the nullspace of the squat pose
+			N_prec= squat_task->_N;
+			skate_task->_desired_position = position_desired_squat_task;
+			skate_task->updateTaskModel(N_prec);
+			skate_task->computeTorques(joint_task_torques_init);
+			command_torques = squat_task_torques + joint_task_torques_init;
 
 		}
 		// calculate torques to move chest
