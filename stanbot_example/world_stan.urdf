@@ -12,7 +12,10 @@
 		<origin xyz="-0.5 -1 0" rpy="0 0 -1.2" />
 	</robot>
 
-
+	<robot name="avatar">
+		<model dir="./resources" path="avatar.urdf" name="avatar" />
+		<origin xyz="0.5 1 0" rpy="0 0 -1.2" />
+	</robot>
 
 	<light name="light1" type="directional">
 		<position xyz="2.0 2.0 2.0" />
@@ -301,4 +304,3 @@
 	</dynamic_object> -->
 
 	
-

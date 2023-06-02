@@ -18,3 +18,11 @@ const std::string LIMBO_JOINT_ANGLES_KEY = "sai2::cs225a::project::limbo::sensor
 const std::string LIMBO_JOINT_VELOCITIES_KEY = "sai2::cs225a::project::limbo::sensors::dq";
 const std::string LIMBO_JOINT_TORQUES_COMMANDED_KEY = "sai2::cs225a::project::limbo::actuators::fgc";
 const std::string LIMBO_CONTROLLER_RUNNING_KEY = "sai2::sim::limbo::controller";
+
+//const std::string AVATAR_JOINT_ANGLES_KEY = "sai2::cs225a::project::avatar::sensors::q";
+//const std::string AVATAR_JOINT_VELOCITIES_KEY = "sai2::cs225a::project::avatar::sensors::dq";
+const std::string AVATAR_JOINT_TORQUES_COMMANDED_KEY = "sai2::cs225a::project::avatar::actuators::fgc";
+const std::string AVATAR_CONTROLLER_RUNNING_KEY = "sai2::sim::avatar::controller";
+
+
+const std::string AVATAR_SPINE ="kinect::pos::spine_chest";

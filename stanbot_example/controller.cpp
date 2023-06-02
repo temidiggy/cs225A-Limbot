@@ -22,7 +22,7 @@ using namespace Eigen;
 
 const string robot_file = "./resources/stanbot.urdf";	
 const string robot_file_2 = "./resources/limboactuation.urdf"; 
-
+const string robot_file_3 = "./resources/avatar.urdf"; 
 
 enum Control
 {
@@ -63,18 +63,48 @@ int main() {
 	robot->updateModel();
 
 
-	auto limbo_robot = new Sai2Model::Sai2Model(robot_file, false);
+	auto limbo_robot = new Sai2Model::Sai2Model(robot_file_2, false);
 	limbo_robot->_q = redis_client.getEigenMatrixJSON(LIMBO_JOINT_ANGLES_KEY);
 	limbo_robot->_dq = redis_client.getEigenMatrixJSON(LIMBO_JOINT_VELOCITIES_KEY);
 	limbo_robot->updateModel();
 
-		
+	//auto avatar_robot = new Sai2Model::Sai2Model(robot_file_3, false);
+	//avatar_robot->_q = redis_client.getEigenMatrixJSON(AVATAR_JOINT_ANGLES_KEY);
+	//avatar_robot->_dq = redis_client.getEigenMatrixJSON(AVATAR_JOINT_VELOCITIES_KEY);
+	//avatar_robot->updateModel();
 
 	// prepare controller
 	int dof = robot->dof();
 	VectorXd command_torques = VectorXd::Zero(dof);
 	MatrixXd N_prec = MatrixXd::Identity(dof, dof);
 	MatrixXd KV = MatrixXd::Identity(dof, dof)*(0);
+
+	// int avatar_dof = avatar_robot->dof();
+	// VectorXd avatar_command_torques = VectorXd::Zero(dof);
+	// MatrixXd avatar_N_prec = MatrixXd::Identity(dof, dof);
+	// MatrixXd avatar_KV = MatrixXd::Identity(dof, dof)*(0);
+
+	// setup redis callback
+	redis_client.createReadCallback(0);
+	redis_client.createWriteCallback(0);
+
+	// add to read callback 
+	redis_client.addEigenToReadCallback(0, JOINT_ANGLES_KEY, robot->_q);
+	redis_client.addEigenToReadCallback(0, JOINT_VELOCITIES_KEY, robot->_dq);
+
+	redis_client.addEigenToReadCallback(0, LIMBO_JOINT_ANGLES_KEY, limbo_robot->_q);
+	redis_client.addEigenToReadCallback(0, LIMBO_JOINT_VELOCITIES_KEY, limbo_robot->_dq);
+
+	// add to write callback
+	redis_client.addStringToWriteCallback(0, CONTROLLER_RUNNING_KEY, controller_status);
+	redis_client.addEigenToWriteCallback(0, JOINT_TORQUES_COMMANDED_KEY, command_torques);
+
+	// create a timer
+	LoopTimer timer;
+	timer.initializeTimer();
+	timer.setLoopFrequency(50); 
+	double start_time = timer.elapsedTime(); //secs
+	bool fTimerDidSleep = true;
 	//cout << KV <<endl;
 
 
@@ -158,6 +188,8 @@ int main() {
 	// posori_task_right_hand->_desired_orientation = AngleAxisd(M_PI/2, Vector3d::UnitX()).toRotationMatrix() * \
 	// 											AngleAxisd(-M_PI/2, Vector3d::UnitY()).toRotationMatrix() * x_ori; 
 
+
+
 	// pose task for left hand
 	control_link = "left_hand";
 	control_point = Vector3d(0, 0, 0);
@@ -215,27 +247,7 @@ int main() {
 	//VectorXd q_init_desired = robot->_q;
 	// joint_task->_desired_position = q_init_desired;
 
-	// setup redis callback
-	redis_client.createReadCallback(0);
-	redis_client.createWriteCallback(0);
 
-	// add to read callback 
-	redis_client.addEigenToReadCallback(0, JOINT_ANGLES_KEY, robot->_q);
-	redis_client.addEigenToReadCallback(0, JOINT_VELOCITIES_KEY, robot->_dq);
-
-	redis_client.addEigenToReadCallback(0, LIMBO_JOINT_ANGLES_KEY, limbo_robot->_q);
-	redis_client.addEigenToReadCallback(0, LIMBO_JOINT_VELOCITIES_KEY, limbo_robot->_dq);
-
-	// add to write callback
-	redis_client.addStringToWriteCallback(0, CONTROLLER_RUNNING_KEY, controller_status);
-	redis_client.addEigenToWriteCallback(0, JOINT_TORQUES_COMMANDED_KEY, command_torques);
-
-	// create a timer
-	LoopTimer timer;
-	timer.initializeTimer();
-	timer.setLoopFrequency(50); 
-	double start_time = timer.elapsedTime(); //secs
-	bool fTimerDidSleep = true;
 
 
 	//std::vector<int> joint_selection_2 {5, 6, 11,  12, 16 , 31};
@@ -254,8 +266,8 @@ int main() {
 	squat_task->_use_velocity_saturation_flag = false;
 
 	VectorXd squat_task_torques = VectorXd::Zero(dof);
-	squat_task->_kp = 400;
-	squat_task->_kv = 40;
+	squat_task->_kp = 100;
+	squat_task->_kv = 20;
 
 	VectorXd position_desired_squat_task = VectorXd::Zero(3);
 
@@ -268,11 +280,26 @@ int main() {
 	joint_task_init->_kp = 400;
 	joint_task_init->_kv = 40;
 
+	VectorXd config_desired = VectorXd::Zero(30);
+	//VectorXd joint_task_torques = VectorXd::Zero(dof);
+	VectorXd do_limbo_kv = VectorXd::Zero(dof);
+	VectorXd do_limbo_kp = VectorXd::Zero(dof);
+	do_limbo_kp << 25,25,25,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100,100;
+	do_limbo_kv << 100,100,100,40,40,40,40,40,40,40,40,40,40,40,40,150,40,40,40,40,40,40,40,40,40,40,40,40,40,40,150,40,40;
+	VectorXd do_limbo_ki = VectorXd::Zero(dof);
+
+
+	VectorXd config_desired_extended = VectorXd::Zero(dof);
+	config_desired_extended << 0, 0, 0, 0.780684, -1.55568,  0.707358, -0.0222702,  -0.330537,   0.440034, 0.00584054,  -0.642971,    1.49804,  -0.785403, 0.00887305,  -0.110356,  -0.803278,   0.440446,  0.0135542,   0.385272,   0.245029,   0.157509 , -0.124961 , -0.0191472,   0.653568, 0.0595868 ,  0.365534 , 0.0893997,  0.0982455, -0.0876818, -0.0180936 , 0.0367051 ,  0.447108, 0.00715255;
+		
+
+
+
 	// set desired joint posture to be the initial robot configuration
 	VectorXd q_init_desired = VectorXd::Zero(dof);
 	q_init_desired = robot->_q;
-	q_init_desired(0) = q_init_desired(0) - 0.5;		//1
-	q_init_desired(1) = q_init_desired(1) + 0.2;
+	q_init_desired(0) = q_init_desired(0) - 0.2;		//1
+	q_init_desired(1) = q_init_desired(1) + 0.1;
 	joint_task_init->_desired_position = q_init_desired;
 
 
@@ -281,10 +308,7 @@ int main() {
 	joint_task->_use_velocity_saturation_flag = false;
 
 	joint_task->_kp = 100;
-	joint_task->_kv = 20;
-
-	VectorXd config_desired = VectorXd::Zero(30);
-	VectorXd joint_task_torques = VectorXd::Zero(dof);
+	joint_task->_kv = 20;	
 
 	
 
@@ -329,28 +353,54 @@ int main() {
 			if ((q_xy- q_des_xy).norm() < 0.05) {
 				state = DO_LIMBO;
 				//q_init_desired = robot->_q;
-				position_desired_squat_task << robot->_q(0) -0.5, robot->_q(1)+ 0.2, robot->_q(2);
-				cout << position_desired_squat_task << endl;
+				position_desired_squat_task << robot->_q(0), robot->_q(1), robot->_q(2);
+				// squat_task->_desired_position(0) = position_desired_squat_task(0);
+				// squat_task->_desired_position(1) = position_desired_squat_task(1);
+				// squat_task->_desired_position(2) = position_desired_squat_task(2);
+				
+				// joint_task_init->_kp = 5;
+				// joint_task_init->_kv = 100;
+				//skate_task->_desired_position << q_xy(0) -2, q_xy(1) +1,position_desired_squat_task(2);
+				// cout<< "current pos: " << q_xy;
+				// cout << "desired squat pos: " << squat_task->_desired_position;
+				// cout << "current pos: " << q_xy << endl;
+				// cout << "desired skate task  pos: " << skate_task-> _desired_position << endl;
 				cout <<"transitioning from approach to do limbo"  << endl;
+				// cout <<"squat task vector desired pos vector: "<< squat_task->_desired_position <<"end";
 				//VectorXd curr_position = VectorXd::Zero(3);
 				//curr_position << robot->_q(0) , robot->_q(1), robot->_q(2)
+				//joint_task_torques_init << 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0;
+				//joint_task_init->updateTaskModel(N_prec);
+				command_torques = joint_task_torques_init;
+				continue;
 			}
 			
 		} else if (state == DO_LIMBO ){
-			//go into squat pose
-			config_desired << 0.780684, -1.55568,  0.707358, -0.0222702,  -0.330537,   0.440034, 0.00584054,  -0.642971,    1.49804,  -0.785403, 0.00887305,  -0.110356,  -0.803278,   0.440446,  0.0135542,   0.385272,   0.245029,   0.157509 , -0.124961 , -0.0191472,   0.653568, 0.0595868 ,  0.365534 , 0.0893997,  0.0982455, -0.0876818, -0.0180936 , 0.0367051 ,  0.447108, 0.00715255;
-			
 			N_prec.setIdentity();
-			squat_task->_desired_position = config_desired;
-			squat_task->updateTaskModel(N_prec);
-			squat_task->computeTorques(squat_task_torques);
+			//cout << "do limbo" << endl;
+			//cout << "desired skate task  pos: " << skate_task-> _desired_position << endl;
+			//cout << "squat task desired position" << squat_task->_desired_position << "end of vector"<<endl;
+			//go into squat pose
+			// config_desired << 0.780684, -1.55568,  0.707358, -0.0222702,  -0.330537,   0.440034, 0.00584054,  -0.642971,    1.49804,  -0.785403, 0.00887305,  -0.110356,  -0.803278,   0.440446,  0.0135542,   0.385272,   0.245029,   0.157509 , -0.124961 , -0.0191472,   0.653568, 0.0595868 ,  0.365534 , 0.0893997,  0.0982455, -0.0876818, -0.0180936 , 0.0367051 ,  0.447108, 0.00715255;
+			joint_task_init->_desired_position << config_desired_extended;
+			joint_task_init->_desired_position(0)= position_desired_squat_task(0) -2;
+			joint_task_init->_desired_position(1)= position_desired_squat_task(1) +.3;
+			joint_task_init->_desired_position(2)= position_desired_squat_task(2);
+			joint_task_init->setNonIsotropicGains(do_limbo_kp,do_limbo_kv,do_limbo_ki);
+			// squat_task->_desired_position = config_desired;
+			// squat_task->updateTaskModel(N_prec);
+			// squat_task->computeTorques(squat_task_torques);
 			
 			//move forward in the nullspace of the squat pose
-			N_prec= squat_task->_N;
-			skate_task->_desired_position = position_desired_squat_task;
-			skate_task->updateTaskModel(N_prec);
-			skate_task->computeTorques(joint_task_torques_init);
-			command_torques = squat_task_torques + joint_task_torques_init;
+			//N_prec= squat_task->_N;
+			//skate_task->_desired_position = position_desired_squat_task;
+			// skate_task->updateTaskModel(N_prec);
+			// skate_task->computeTorques(joint_task_torques_init);
+			joint_task_init->updateTaskModel(N_prec);
+			joint_task_init->computeTorques(joint_task_torques_init);
+			//command_torques = squat_task_torques + skate_task_torques;
+			command_torques = joint_task_torques_init;
+			//cout<<"command torques: "<<command_torques(0) <<command_torques(1) << command_torques(2)<<endl;
 
 		}
 		// calculate torques to move chest
@@ -371,7 +421,7 @@ int main() {
 		//command_torques = skate_task_torques + posori_task_torques_left_foot + joint_task_torques - N_prec.transpose()*robot->_M*KV*robot->_dq;
 		//command_torques = skate_task_torques + posori_task_torques_left_foot + joint_task_torques; 
 		//command_torques = squat_task_torques + posori_task_torques_left_foot;
-		cout << limbo_robot->_q<<endl;
+		//cout << limbo_robot->_q<<endl;
 		// execute redis write callback
 		redis_client.executeWriteCallback(0);	
 

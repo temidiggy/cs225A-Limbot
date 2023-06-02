@@ -33,9 +33,11 @@ const string robot_file = "./resources/stanbot.urdf";
 
 const string robot_file_2 = "./resources/limboactuation.urdf"; 
 
+const string robot_file_3 = "./resources/avatar.urdf";
 
 const string robot_name = "stanbot";
 const string limbo_robot_name = "limboactuation";
+const string avatar_robot_name = "avatar";
 const string camera_name = "camera_fixed";
 
 #include "redis_keys.h"
@@ -43,7 +45,7 @@ const string camera_name = "camera_fixed";
 RedisClient redis_client;
 
 // simulation function prototype
-void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* limbo_robot, Simulation::Sai2Simulation* sim, UIForceWidget *ui_force_widget);
+void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* limbo_robot,Sai2Model::Sai2Model* avatar_robot, Simulation::Sai2Simulation* sim, UIForceWidget *ui_force_widget);
 
 // callback to print glfw errors
 void glfwError(int error, const char* description);
@@ -99,12 +101,18 @@ int main() {
 	limbo_robot->_q.setZero();
 	limbo_robot->updateModel();
 
+	auto avatar_robot = new Sai2Model::Sai2Model(robot_file_3, false);
+	limbo_robot->_q.setZero();
+	limbo_robot->updateModel();
+
 	// load simulation world
 	auto sim = new Simulation::Sai2Simulation(world_file, false);
 	sim->setJointPositions(robot_name, robot->_q);
 	sim->setJointVelocities(robot_name, robot->_dq);
 	sim->setJointPositions(limbo_robot_name, limbo_robot->_q);
 	sim->setJointVelocities(limbo_robot_name, limbo_robot->_dq);
+	sim->setJointPositions(avatar_robot_name, avatar_robot->_q);
+	sim->setJointVelocities(avatar_robot_name, avatar_robot->_dq);
 	sim->setCollisionRestitution(0);
 	sim->setCoeffFrictionStatic(0);
 	sim->setCoeffFrictionDynamic(0);
@@ -158,7 +166,7 @@ int main() {
 	glewInitialize();
 
 	fSimulationRunning = true;
-	thread sim_thread(simulation, robot, limbo_robot,sim, ui_force_widget);
+	thread sim_thread(simulation, robot, limbo_robot, avatar_robot, sim, ui_force_widget);
 	
 	// while window is open:
 	while (!glfwWindowShouldClose(window) && fSimulationRunning)
@@ -168,6 +176,7 @@ int main() {
 		glfwGetFramebufferSize(window, &width, &height);
 		graphics->updateGraphics(robot_name, robot);
 		graphics->updateGraphics(limbo_robot_name, limbo_robot);
+		graphics->updateGraphics(avatar_robot_name, avatar_robot);
 		graphics->render(camera_name, width, height);
 
 		// swap buffers
@@ -281,7 +290,7 @@ int main() {
 }
 
 //------------------------------------------------------------------------------
-void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* limbo_robot, Simulation::Sai2Simulation* sim, UIForceWidget *ui_force_widget) {
+void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* limbo_robot,Sai2Model::Sai2Model* avatar_robot ,Simulation::Sai2Simulation* sim, UIForceWidget *ui_force_widget) {
 
 	int dof = robot->dof();
 	VectorXd command_torques = VectorXd::Zero(dof);
@@ -296,6 +305,12 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* limbo_robot, 
 	string limbo_controller_status = "0";
 	redis_client.set(LIMBO_CONTROLLER_RUNNING_KEY, limbo_controller_status);
 
+	int avatar_dof = avatar_robot->dof();
+	VectorXd avatar_command_torques = VectorXd::Zero(avatar_dof);
+
+	redis_client.setEigenMatrixJSON(AVATAR_JOINT_TORQUES_COMMANDED_KEY, avatar_command_torques);
+	string avatar_controller_status = "0";
+	redis_client.set(AVATAR_CONTROLLER_RUNNING_KEY, avatar_controller_status);
 
 	// create a timer
 	LoopTimer timer;
@@ -307,6 +322,7 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* limbo_robot, 
 	// init variables
 	VectorXd g(dof);
 	VectorXd g_limbo(limbo_dof);
+	VectorXd g_avatar(avatar_dof);
 
 
 	Eigen::Vector3d ui_force;
@@ -323,12 +339,17 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* limbo_robot, 
 	redis_client.addStringToReadCallback(0, CONTROLLER_RUNNING_KEY, controller_status);
 	redis_client.addEigenToReadCallback(0, JOINT_TORQUES_COMMANDED_KEY, command_torques);
 	redis_client.addEigenToReadCallback(0, LIMBO_JOINT_TORQUES_COMMANDED_KEY, limbo_command_torques);
+	//redis_client.addEigenToReadCallback(0, AVATAR_JOINT_TORQUES_COMMANDED_KEY, avatar_command_torques);
+	//redis_client2.addEigenToReadCallback(0, AVATAR_SPINE, chest_detect);
+
 
 	// add to write callback
 	redis_client.addEigenToWriteCallback(0, JOINT_ANGLES_KEY, robot->_q);
 	redis_client.addEigenToWriteCallback(0, JOINT_VELOCITIES_KEY, robot->_dq);
 	redis_client.addEigenToWriteCallback(0, LIMBO_JOINT_ANGLES_KEY, limbo_robot->_q);
 	redis_client.addEigenToWriteCallback(0, LIMBO_JOINT_VELOCITIES_KEY, limbo_robot->_dq);
+	//redis_client.addEigenToWriteCallback(0, AVATAR_JOINT_ANGLES_KEY, avatar_robot->_q);
+	//redis_client.addEigenToWriteCallback(0, AVATAR_JOINT_VELOCITIES_KEY, avatar_robot->_dq);
 
 	while (fSimulationRunning) {
 		fTimerDidSleep = timer.waitForNextLoop();
@@ -339,6 +360,7 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* limbo_robot, 
 		// get gravity torques
 		robot->gravityVector(g);
 		limbo_robot->gravityVector(g_limbo);
+		avatar_robot->gravityVector(g_avatar);
 
 		
 		// get ui force 
@@ -347,12 +369,13 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* limbo_robot, 
 
 		if (fRobotLinkSelect){
 			sim->setJointTorques(robot_name, command_torques + ui_force_command_torques + g - 1 * robot->_M * robot->_dq);
-			sim->setJointTorques(limbo_robot_name, limbo_command_torques + ui_force_command_torques + g_limbo - 1 * limbo_robot->_M * limbo_robot->_dq);}
+			sim->setJointTorques(limbo_robot_name, limbo_command_torques + ui_force_command_torques + g_limbo - 1 * limbo_robot->_M * limbo_robot->_dq);
+			sim->setJointTorques(avatar_robot_name, avatar_command_torques + ui_force_command_torques + g_avatar - 1 * avatar_robot->_M * avatar_robot->_dq);}
 		else{
 			sim->setJointTorques(robot_name, command_torques + g - 1* robot->_M * robot->_dq);
 			sim->setJointTorques(limbo_robot_name, limbo_command_torques + g_limbo);
 			//sim->setJointTorques(limbo_robot_name, limbo_command_torques );
-
+			sim->setJointTorques(avatar_robot_name, avatar_command_torques + g_avatar - 1* avatar_robot->_M * avatar_robot->_dq);
 
 			}
 		// integrate forward
@@ -368,6 +391,11 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* limbo_robot, 
 		sim->getJointPositions(limbo_robot_name, limbo_robot->_q);
 		sim->getJointVelocities(limbo_robot_name, limbo_robot->_dq);
 		limbo_robot->updateModel();
+
+		sim->getJointPositions(avatar_robot_name, avatar_robot->_q);
+		sim->getJointVelocities(avatar_robot_name, avatar_robot->_dq);
+		avatar_robot->updateModel();
+		
 
 		// visualizer
 		// robot->_q = redis_client.getEigenMatrixJSON(JOINT_ANGLES_KEY);

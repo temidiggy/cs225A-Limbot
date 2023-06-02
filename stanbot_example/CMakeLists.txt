@@ -8,12 +8,14 @@ set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CS225A_BINARY_DIR}/stanbot_example)
 ADD_EXECUTABLE (controller_stan controller.cpp ${CS225A_COMMON_SOURCE})
 ADD_EXECUTABLE (simviz_stan simviz.cpp ${CS225A_COMMON_SOURCE})
 ADD_EXECUTABLE (limbo_actuation_stan limbo_actuation_controller.cpp ${CS225A_COMMON_SOURCE})
+ADD_EXECUTABLE (avatar_controller avatar_controller.cpp ${CS225A_COMMON_SOURCE})
 
 
 # and link the library against the executable
 TARGET_LINK_LIBRARIES (controller_stan ${CS225A_COMMON_LIBRARIES} ${SAI2-PRIMITIVES_LIBRARIES})
 TARGET_LINK_LIBRARIES (simviz_stan ${CS225A_COMMON_LIBRARIES} ${SAI2-PRIMITIVES_LIBRARIES})
 TARGET_LINK_LIBRARIES (limbo_actuation_stan ${CS225A_COMMON_LIBRARIES} ${SAI2-PRIMITIVES_LIBRARIES})
+TARGET_LINK_LIBRARIES (avatar_controller ${CS225A_COMMON_LIBRARIES} ${SAI2-PRIMITIVES_LIBRARIES})
 
 # export resources such as model files.
 # NOTE: this requires an install build
@@ -22,4 +24,5 @@ FILE(MAKE_DIRECTORY ${APP_RESOURCE_DIR})
 FILE(COPY world_stan.urdf DESTINATION ${APP_RESOURCE_DIR})
 FILE(COPY stanbot.urdf DESTINATION ${APP_RESOURCE_DIR})
 FILE(COPY limboactuation.urdf DESTINATION ${APP_RESOURCE_DIR})
+FILE(COPY avatar.urdf DESTINATION ${APP_RESOURCE_DIR})
 
