@@ -4,7 +4,7 @@
 
 	<robot name="stanbot">
 		<model dir="./resources" path="stanbot.urdf" name="stanbot" />
-		<origin xyz="0 0 0" rpy="0 0 0" />
+		<origin xyz="0.3 0 0" rpy="0 0 0" />
 	</robot>
 
 	<robot name="limboactuation">
@@ -14,8 +14,33 @@
 
 	<robot name="avatar">
 		<model dir="./resources" path="avatar.urdf" name="avatar" />
-		<origin xyz="0.5 1 0" rpy="0 0 -1.2" />
+		<origin xyz="0.6 1 0" rpy="0 0 0.4" />
 	</robot>
+
+	<static_object name="Base">
+		<origin xyz="0.0 0.0 0.0" rpy="0 0 1.2" />
+	    <visual>
+	        <origin xyz="0.0 0.0 -0.00635" rpy="0 0 0" />
+	        <geometry>
+				<box size="10 10 0.0127" />
+	        </geometry>
+	        <material name="Brown">
+		        <color rgba="0.957 0.643 0.376 1.0" />
+	        </material>
+	    </visual>
+		<collision>
+	        <origin xyz="0.0 0.0 -0.00635" rpy="0 0 0" />
+	        <geometry>
+	            <box size="10 10 0.0127" />
+	        </geometry>
+	    </collision>
+	</static_object>
+	
+
+
+
+
+   
 
 	<light name="light1" type="directional">
 		<position xyz="2.0 2.0 2.0" />
@@ -28,7 +53,7 @@
 	</light>
 
 	<camera name="camera_fixed">
-		<position xyz="-3 1 1.0" />
+		<position xyz="-4 1 1.5" />
 		<vertical xyz="0.0 0.0 1.0" />
 		<lookat xyz="0.0 0.0 0.0" />
 	</camera>

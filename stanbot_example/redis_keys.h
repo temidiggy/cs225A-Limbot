@@ -25,4 +25,5 @@ const std::string AVATAR_JOINT_TORQUES_COMMANDED_KEY = "sai2::cs225a::project::a
 const std::string AVATAR_CONTROLLER_RUNNING_KEY = "sai2::sim::avatar::controller";
 
 
+
 const std::string AVATAR_SPINE ="kinect::pos::spine_chest";

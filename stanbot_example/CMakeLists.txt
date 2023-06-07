@@ -11,11 +11,13 @@ ADD_EXECUTABLE (limbo_actuation_stan limbo_actuation_controller.cpp ${CS225A_COM
 ADD_EXECUTABLE (avatar_controller avatar_controller.cpp ${CS225A_COMMON_SOURCE})
 
 
+
 # and link the library against the executable
 TARGET_LINK_LIBRARIES (controller_stan ${CS225A_COMMON_LIBRARIES} ${SAI2-PRIMITIVES_LIBRARIES})
 TARGET_LINK_LIBRARIES (simviz_stan ${CS225A_COMMON_LIBRARIES} ${SAI2-PRIMITIVES_LIBRARIES})
 TARGET_LINK_LIBRARIES (limbo_actuation_stan ${CS225A_COMMON_LIBRARIES} ${SAI2-PRIMITIVES_LIBRARIES})
 TARGET_LINK_LIBRARIES (avatar_controller ${CS225A_COMMON_LIBRARIES} ${SAI2-PRIMITIVES_LIBRARIES})
+
 
 # export resources such as model files.
 # NOTE: this requires an install build

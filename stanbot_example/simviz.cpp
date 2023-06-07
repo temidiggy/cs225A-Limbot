@@ -351,6 +351,11 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* limbo_robot,S
 	//redis_client.addEigenToWriteCallback(0, AVATAR_JOINT_ANGLES_KEY, avatar_robot->_q);
 	//redis_client.addEigenToWriteCallback(0, AVATAR_JOINT_VELOCITIES_KEY, avatar_robot->_dq);
 
+	vector<Vector3d> contact_points;
+	vector<Vector3d> contact_forces;
+
+	vector<Vector3d> avatar_contact_points;
+	vector<Vector3d> avatar_contact_forces;
 	while (fSimulationRunning) {
 		fTimerDidSleep = timer.waitForNextLoop();
 
@@ -396,7 +401,13 @@ void simulation(Sai2Model::Sai2Model* robot, Sai2Model::Sai2Model* limbo_robot,S
 		sim->getJointVelocities(avatar_robot_name, avatar_robot->_dq);
 		avatar_robot->updateModel();
 		
+		
+		sim->getContactList(contact_points, contact_forces, robot_name, "chest");
 
+		sim->getContactList(avatar_contact_points, avatar_contact_forces, avatar_robot_name, "chest");
+
+		//
+		//cout <<" contact_points" << contact_points.size()<< "avatar contact points"<< avatar_contact_points.size()<< endl;
 		// visualizer
 		// robot->_q = redis_client.getEigenMatrixJSON(JOINT_ANGLES_KEY);
 		// robot->_dq = redis_client.getEigenMatrixJSON(JOINT_VELOCITIES_KEY);

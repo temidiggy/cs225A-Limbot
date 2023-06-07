@@ -11,10 +11,11 @@
         <origin xyz="0 0 0" rpy="0 0 0" />
         <geometry>
           <mesh filename="../../../model/limbot/HA.obj"/>
+
         </geometry>
       </visual>
       <visual>
-      <origin xyz="0 0.55 0" rpy="0 0 0" />
+      <origin xyz="0 2.75 0" rpy="0 0 0" />
         <geometry>
           <mesh filename="../../../model/limbot/HA.obj"/>
         </geometry>
@@ -44,7 +45,31 @@
         </geometry>
       </visual>
       <visual>
-       <origin xyz="0 0.55 0" rpy="0 0 0" />
+        <origin xyz="0 0.55 0.55" rpy="0 0 0" />        
+        <geometry>
+          <mesh filename="../../../model/limbot/Limbo_stick_brown.obj"/>
+        </geometry>
+      </visual>
+      <visual>
+        <origin xyz="0 1.1 0.55" rpy="0 0 0" />        
+        <geometry>
+          <mesh filename="../../../model/limbot/Limbo_stick_brown.obj"/>
+        </geometry>
+      </visual>
+      <visual>
+        <origin xyz="0 1.65 0.55" rpy="0 0 0" />        
+        <geometry>
+          <mesh filename="../../../model/limbot/Limbo_stick_brown.obj"/>
+        </geometry>
+      </visual>
+      <visual>
+        <origin xyz="0 2.2 0.55" rpy="0 0 0" />        
+        <geometry>
+          <mesh filename="../../../model/limbot/Limbo_stick_brown.obj"/>
+        </geometry>
+      </visual>
+      <visual>
+       <origin xyz="0 2.75 0" rpy="0 0 0" />
         <geometry>
           <mesh filename="../../../model/limbot/VA.obj"/>
         </geometry>
@@ -68,7 +93,7 @@
   <link name ="ground_link"> <!-- added -->
       <inertial>
         <origin xyz="0.0 0.0 0.0" rpy="0 0 0" />
-        <mass value="0.001" />
+        <mass value="100" />
         <inertia ixx="1E-06" ixy="0.0" ixz="0.0" iyy="1E-06" iyz="0.0" izz="1E-06" />
       </inertial>
     </link>
@@ -94,7 +119,8 @@
     </joint>
     <joint name="j2" type="prismatic">
       <safety_controller k_position="100.0" k_velocity="40.0" soft_lower_limit="0.6" soft_upper_limit="0.9"/>
-      <origin rpy="0 0 0" xyz="0 0 0.6"/>
+      <origin rpy="0 0 0" xyz="0 0 0.7"/>
+      
       <parent link="HA"/>
       <child link="VA"/>
       <axis xyz="0 0 1"/>
